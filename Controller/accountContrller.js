@@ -1,6 +1,5 @@
 const sessionStorage = require("node-sessionstorage");
 const User = require("../Models/account");
-const sessionstorage = require("node-sessionstorage");
 const { response } = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -20,6 +19,7 @@ const registerUser = async (req, res) => {
     password: req.body.password,
     addess: req.body.address,
     phonenuber: req.body.phonenumber,
+    role: req.body.role,
   });
 
   try {
@@ -28,11 +28,87 @@ const registerUser = async (req, res) => {
       type: "success",
       message: "User added successfully !",
     };
-    return res.redirect("/");
+    return res.redirect("/dashbroad");
   } catch (error) {
     console.log(error);
   }
 };
+
+const deteleUser = async (req, res) => {
+  try {
+    const id = req.body.id;
+    result = await User.findByIdAndDelete(id);
+    if (result) {
+      console.log("delete successfully");
+      res.redirect("/dashbroad");
+    } else {
+      console.log("delete Failed");
+    }
+  } catch (error) {
+    res.json(error);
+  }
+};
+
+const handelUpdateUsrt = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).send("ID parameter is missing or invalid.");
+    }
+
+    const data = await User.findById(id);
+    if (!data) {
+      return res.status(404).send("Product not found.");
+    }
+    console.log(data);
+    return res.render("editUser", { data: data });
+  } catch (error) {
+    res.json(error);
+  }
+};
+
+const handelUpdateUssers = async (req, res) => {
+  try {
+    const id = req.param.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid user ID" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { role: req.body.role },
+      { new: true }
+    );
+
+    if (updatedUser) {
+      console.log("Update success");
+      res.redirect("/showUser");
+    } else {
+      console.log("Update failure");
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// const loginUser = async (req, res) => {
+//   try {
+//     const email = req.body.email;
+//     const password = req.body.password;
+
+//     const users = await User.findOne({ email, password });
+//     if (users) {
+//       sessionStorage.setItem("admin_login", req.body.email);
+//       console.log(sessionStorage.setItem("role", users.role));
+//       return res.redirect("/dashbroad");
+//     } else {
+//       return res.render("login", { message: "Invalid username or password" });
+//     }
+//   } catch (error) {}
+// };
 
 const loginUser = async (req, res) => {
   try {
@@ -42,11 +118,21 @@ const loginUser = async (req, res) => {
     const users = await User.findOne({ email, password });
     if (users) {
       sessionStorage.setItem("admin_login", req.body.email);
+
+      // Lưu trữ role và thiết lập thời gian hết hạn là 1 giờ
+      const expirationTime = new Date().getTime() + 3600000;
+      sessionStorage.setItem("role", users.role);
+      console.log(sessionStorage.getItem("role"));
+      sessionStorage.setItem("role_expiration", expirationTime);
+
       return res.redirect("/dashbroad");
     } else {
       return res.render("login", { message: "Invalid username or password" });
     }
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Internal Server Error");
+  }
 };
 
 const logoutUser = async (req, res) => {
@@ -88,7 +174,7 @@ const loginApi = async (req, res) => {
       return res.status(500).json({ error: "User not found" });
     }
     if (await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign({email:user.email}, Jwt_secret);
+      const token = jwt.sign({ email: user.email }, Jwt_secret);
 
       if (res.status(201)) {
         return res.json({ status: "ok", data: token });
@@ -107,7 +193,7 @@ const userData = async (req, res) => {
   try {
     const user = jwt.verify(token, Jwt_secret);
     const userEmail = user.email;
-     await User.findOne({ email: userEmail })
+    await User.findOne({ email: userEmail })
       .then((data) => {
         res.send({ status: "ok", data: data });
       })
@@ -125,5 +211,8 @@ module.exports = {
   logoutUser,
   registerApi,
   loginApi,
-  userData
+  userData,
+  deteleUser,
+  handelUpdateUsrt,
+  handelUpdateUssers,
 };

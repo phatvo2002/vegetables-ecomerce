@@ -1,7 +1,17 @@
 const multer = require("multer");
 const Category = require("../Models/Category");
 const express = require("express");
-
+const sessionStorage = require("node-sessionstorage");
+const mysql = require("mysql2");
+const connection = mysql.createPool({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "vegetable_app",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 const HandleAddCategory = (req, res) => {
   return res.render("add_category", {
     title: "add category",
@@ -14,10 +24,12 @@ const HandleAddCategory = (req, res) => {
 const HandleCategory = async (req, res) => {
   try {
     const categories = await Category.find().exec();
+    const role = sessionStorage.getItem("role");
     return res.render("category", {
       title: "Category",
       css: "style.css",
       category: categories,
+      role: role,
       image:
         "https://img.freepik.com/free-vector/vegan-friendly-leaves-label-green-color_1017-25452.jpg?w=740&t=st=1704384258~exp=1704384858~hmac=9fffabebdbb3e16a1cc7fc4ea5bafa4eddebe6687e8ba8e6a9fa177deed34bb7",
     });
@@ -76,6 +88,8 @@ const HandleEditCategory = async (req, res) => {
 const HandleUpdateCategory = async (req, res) => {
   try {
     const id = req.params.id;
+    const role = sessionStorage.getItem("role");
+
     const updateData = {
       name: req.body.name,
       desc: req.body.desc,
@@ -105,8 +119,7 @@ const handleDeleteCategory = async (req, res) => {
     // Find the category by ID
     const result = await Category.findByIdAndDelete(id);
 
-    // Check if the result is not null and has an image property
-    if (result && result.image !== '') {
+    if (result && result.image !== "") {
       try {
         // Delete the associated image file
         fs.unlinkSync("./upload/" + result.image);
@@ -120,18 +133,51 @@ const handleDeleteCategory = async (req, res) => {
       type: "info",
       message: "Category deleted successfully",
     };
-    
+
     return res.redirect("/category");
   } catch (error) {
     return res.json({ message: error.message });
   }
 };
 
+// api
+const handelCategoryApi = (req, res) => {
+    try {
+      const sql = "SELECT * FROM categories ";
+      connection.query(sql, (err, result) => {
+        if (err) return res.json({ Message: "error" });
+        return res.json(result);
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send(error);
+    }
+ 
+}
+
+const handleCategoryApiFindID =(req,res)=>{
+  try {
+    const sql = "SELECT * FROM priductsses WHERE categoryId = ?";
+    const id = req.params.id;
+    connection.query(sql, [id], (err, result) => {
+      if (err) {
+        console.error("SQL Error:", err);
+        return res.json({ Message: "Error in SQL query" });
+      }
+      return res.json(result);
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send(error);
+  }
+}
 
 module.exports = {
   HandleAddCategory,
   HandleCategory,
   HandleEditCategory,
   HandleUpdateCategory,
-  handleDeleteCategory
+  handleDeleteCategory,
+  handelCategoryApi,
+  handleCategoryApiFindID
 };

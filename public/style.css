@@ -6,8 +6,10 @@
 
 .logo_image
 {
-    width: 20%;
-    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+    border-radius: 10%;
+    margin-top: 40%;
 }
 .admin_menu
 {
@@ -18,7 +20,7 @@
 }
 .admin_menu ul {
     list-style: none;
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 .admin_menu ul li {
     margin-top: 10%;
@@ -48,6 +50,8 @@
    font-size: 1.3rem;
    padding: 5px;
    margin-left: 10%;
+   position: absolute;
+   top: 75%;
 }
 .admin_action a
 {

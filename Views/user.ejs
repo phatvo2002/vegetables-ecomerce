@@ -1,9 +1,10 @@
 <%- include('layout/header')%>
-<div class="row admin_content position-absolute d-flex">
+<div class="row admin_content position-absolute d-flex"  style="z-index:-1000;">
     <h3>User</h3>
     <div class="row ">
+
         <% if(data) { %>
-        <table class="table table-striped ">
+        <table class="table table-striped table-bordered table-responsive">
             <thead class="table table-dark">
                 <tr>
                     <th scope="col">Id</th>
@@ -22,20 +23,58 @@
                     <td><%= row.email %></td>
                     <td><%= row.phoneNumber %></td>
                     <td><%= row.role %></td>
-                    <td> <a href="/update/<%= row._id %>" class="text-success">
+                    <td>
+                        <% if(role === "staff" || role === "user") { %>
+                        <a href="#"
+                            onclick="alert('Banh phải có quyền admin thì mới có thể sửa người dùng ')"
+                            class="text-success">
                             <i class="fas fa-edit fa-lg mx-1"></i>
                         </a>
-                        <a href="/delete/<%= row._id%>" class="text-danger">
+                        <%}else { %>
+                        <span class="btn btn-success " style="padding: 0 10px;">
+                            <a href="/user/update/<%= row._id %>"
+                                class="text-success ">
+                                <p class="text-white p-1" style>Sửa</p>
+                            </a>
+                        </span>
+
+                        <%}%>
+
+                        <% if(role === "staff" || role === "user") { %>
+                        <a href
+                            onclick="alert('Bạn không có quyền xóa người dùng ')"
+                            class="text-danger">
                             <i class="fas fa-trash fa-lg mx-1"></i>
-                        </a></td>
+                        </a>
+                        <%}else { %>
+                        <form action="/user/delete" method="post"
+                            class="btn btn-danger p-1">
+                            <input type="hidden" name="id" value="<%=row._id%>">
+                            <input class="btn btn-danger" type="submit" name
+                                value="Xóa">
+                        </form>
+                        <!-- <a href="/user/delete/<%=row._id %>"
+                            class="text-danger">
+                            <i class="fas fa-trash fa-lg mx-1"></i>
+                        </a> -->
+                        <%}%>
+
+                    </td>
                 </tr>
 
                 <% }) %>
             </tbody>
         </table>
+
+        <% if(role == "admin") { %>
+        <a href="/register" class="btn btn-success col-5">Thêm một người
+            dùng</a>
+        <%}%>
+
         <% } else { %>
         <h1>NO DATA</h1>
         <% } %>
+
     </div>
 
 </div>

@@ -34,9 +34,18 @@
                     <td><img src="<%= row.image %>" class="img-thumbnail"
                             width="50px" alt /></td>
                     <td>
-                        <a href="/update/<%= row._id %>" class="text-success">
+                        <%if(role =="user"){ %>
+                        <a href
+                            onclick="alert('Bạn không có quyền sửa danh mục ');"
+                            class="text-success">
                             <i class="fas fa-edit fa-lg mx-1"></i>
                         </a>
+                        <% } else { %>
+                        <a href="/update/<%= row._id %>"
+                            class="text-success">
+                            <i class="fas fa-edit fa-lg mx-1"></i>
+                        </a>
+                        <%}%>
                         <a href="/delete/<%= row._id%>" class="text-danger">
                             <i class="fas fa-trash fa-lg mx-1"></i>
                         </a>

@@ -48,7 +48,7 @@ db.once("disconnected", () => {
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.header("Access-Control-Allow-Headers", "Content-Type");
   next();
 });
 
@@ -59,14 +59,14 @@ app.use("", require("./Routes/routerApi"));
 
 app.use("", require("./Routes/accountRouter"));
 
-// app.use((req, res, next) => {
-//   let check = sessionStorage.getItem("admin_login") ? true : false;
-//   if (check) {
-//     next();
-//   } else {
-//     res.redirect("/");
-//   }
-// });
+app.use((req, res, next) => {
+  let check = sessionStorage.getItem("admin_login") ? true : false;
+  if (check) {
+    next();
+  } else {
+    res.redirect("/");
+  }
+});
 // web Routes
 app.use("", require("./Routes/routes"));
 
@@ -78,3 +78,4 @@ app.use(express.static("uploads"));
 app.listen(PORT, () => {
   console.log(`listening on port at http://localhost:${PORT}`);
 });
+

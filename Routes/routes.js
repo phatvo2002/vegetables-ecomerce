@@ -4,11 +4,18 @@ const multer = require("multer");
 const homeController = require("../Controller/homeController");
 const ProductController = require("../Controller/ProdcutController");
 const categoryController = require("../Controller/CategoryController");
-const userController = require("../Controller/userController")
+const userController = require("../Controller/userController");
+const orderDetailController = require("../Controller/OrderdetailController");
+const postingController = require("../Controller/PostingController");
+const accountController = require("../Controller/accountContrller");
 const prodcut = require("../Models/prodcucts");
 const Category = require("../Models/Category");
+const Post = require("../Models/Post");
 const connectDB = require("../Config/connectDB");
+const OrderDetails = require("../Models/OrderDetail");
+const newController = require("../Controller/NewsController");
 const mysql = require("mysql2");
+const sessionStorage = require("node-sessionstorage");
 const connection = mysql.createPool({
   host: "localhost",
   user: "root",
@@ -45,6 +52,20 @@ var storage1 = multer.diskStorage({
 
 var uploadimage = multer({
   storage: storage1,
+}).single("image");
+
+//save form images product
+var storage2 = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/imagepost");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+var uploadpost = multer({
+  storage: storage2,
 }).single("image");
 
 router.get("/dashbroad", homeController.handleHomepage);
@@ -149,10 +170,65 @@ router.post("/saveProduct", uploadimage, async (req, res) => {
 
 //delete products
 router.get("/product/delete/:id", ProductController.handelDeleteProduct);
+router.get("/product/update/:id", ProductController.handlEditProductPage);
 
-
+router.post("/product/update/", ProductController.handelUpdateProduct);
 
 //show usser
-router.get("/showUser",userController.showUser)
+router.get("/showUser", userController.showUser);
+
+router.post("/user/delete", accountController.deteleUser);
+
+router.get("/user/update/:id", accountController.handelUpdateUsrt);
+
+router.post("/user/update/:id", accountController.handelUpdateUssers);
+/// news items
+router.get("/showNews", newController.HandleNews);
+
+router.get("/addNews", newController.HandleAddNews);
+
+router.post("/add_news", upload, newController.HandleInsertNews);
+
+router.get("/updateNews/:id", newController.HandleEditNews);
+
+router.post("/updateNews/:id", newController.HandleUpdateNews);
+
+router.get("/deleteNews/:id", newController.HandleDeleteNews);
+
+// Order details
+router.post("/OrderDetails/save", orderDetailController.saveOrderDetail);
+
+router.get("/ShowOrderDetails", orderDetailController.ShowOrderDetails);
+
+router.get("/updateOrders/:id", orderDetailController.editOrderDetails);
+
+router.post("/updatestatus/", orderDetailController.updateStatus);
+
+//posting a article
+router.post("/posting", uploadpost, async (req, res) => {
+  try {
+    const post = new Post({
+      title: req.body.title,
+      desc: req.body.description,
+      content: req.body.content,
+      username: req.body.username,
+      image: req.file.filename,
+    });
+
+    const result = await post.save();
+    if (result) {
+      console.log(result);
+      console.log("posting successfully");
+      return res.status(200).json({ message: "Đăng bài thành công" });
+    } else {
+      console.log("posting failed");
+      return res.status(500).json({ message: "Đăng bài thất bại" });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+router.get("/api/postAll", postingController.showPostApi);
 
 module.exports = router;
